@@ -1,0 +1,30 @@
+FROM nginx:mainline
+LABEL maintainer="amantaev-rinat@mail.ru"
+
+WORKDIR /docker/dockerfile/
+
+# Скачиваем конфигурационный файл и архив
+ADD https://stepik.org/media/attachments/lesson/686238/jusan-dockerfile.conf /docker/dockerfile/jusan-dockerfile.conf
+ADD https://stepik.org/media/attachments/lesson/686238/jusan-dockerfile.zip /opt/jusan-dockerfile.zip
+
+# Создаем необходимую директорию
+RUN mkdir -p /var/www/html/
+
+# Устанавливаем unzip и разархивируем архив
+RUN apt-get update && apt-get install -y unzip && \
+    unzip /opt/jusan-dockerfile.zip -d /opt
+
+# Проверяем содержимое /opt, чтобы убедиться, что файлы разархивированы
+RUN ls -al /opt
+
+# Копируем конфигурационный файл в директорию nginx
+COPY jusan-dockerfile.conf /etc/nginx/conf.d/jusan-dockerfile.conf
+
+# Если файлы находятся в подпапке, используйте это
+COPY jusan-dockerfile/* /var/www/html/jusan-dockerfile/
+
+# Проверяем конфигурацию Nginx
+RUN nginx -t
+
+# Команда для запуска Nginx
+CMD ["nginx", "-g", "daemon off;"]
